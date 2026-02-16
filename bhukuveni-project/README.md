@@ -1,34 +1,59 @@
-# Bhukuveni Facility Manager
+# Bhukuveni Home Manager
 
 <div align="center">
-  <h3>🏥 Comprehensive Healthcare Facility Management System</h3>
-  <p>A beautiful, mobile-friendly application for managing maintenance, cleaning, cooking, and staff in healthcare facilities</p>
+  <h3>🏠 Complete Home Management System</h3>
+  <p>A beautiful, mobile-friendly PWA for managing maintenance, cleaning, cooking, and household tasks across multiple properties</p>
+  
+  [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/YOUR-USERNAME/bhukuveni-project-vercel)
 </div>
+
+---
+
+## 🚀 Quick Start
+
+### Deploy Now (2 minutes)
+```bash
+# Just run this!
+./deploy.bat   # Windows
+./deploy.sh    # Mac/Linux
+```
+
+Then visit [Vercel Dashboard](https://vercel.com/dashboard) to see your live app!
+
+### Enable Cloud Sync (Optional - 5 minutes)
+See **[DEPLOY.md](DEPLOY.md)** for complete instructions to sync data across all devices.
 
 ---
 
 ## ✨ Features
 
-### 👥 **Staff Management**
-- Add and manage facility staff members
-- Assign staff to specific tasks
+### 🏘️ **Multi-House Support**
+- Manage multiple houses in your property
+- Tag tasks by specific house
+- Organize work across different buildings
+
+### 👥 **People Management** 
+- Manage household members and helpers
+- Assign people to specific tasks
 - Track roles and responsibilities
 
 ### 🔧 **Maintenance Tracking**
-- 8 categories (Facility, Equipment, Safety, Plumbing, Electrical, HVAC, Exterior, Interior)
+- 8 categories (General, Equipment, Safety, Plumbing, Electrical, HVAC, Exterior, Interior)
 - 4 priority levels (Low, Medium, High, Critical)
 - 5 frequency options (Daily, Weekly, Monthly, Quarterly, Annually)
-- Staff assignment
+- Auto-reset for recurring tasks
 - Photo documentation
 - Notes and comments
 - PDF fault report export
+- Excel/CSV export
 
 ### ✨ **Cleaning Schedules**
-- 8 area types (Patient Rooms, Operating Rooms, Bathrooms, Kitchen, etc.)
+- 8 area types (Bedrooms, Living Areas, Dining Room, Bathrooms, Kitchen, etc.)
 - Staff assignment
 - Time scheduling
 - Frequency tracking
 - Completion status
+- Auto-reset daily tasks
 
 ### 🍳 **Cooking & Meal Planning**
 - Daily cooking schedule
@@ -38,16 +63,43 @@
 - Weekly menu planning
 - Dietary information
 
-### 📱 **Mobile-First Design**
-- Fully responsive (phones, tablets, desktops)
-- Touch-optimized interface
-- Hamburger menu on mobile
-- Camera integration for photos
-- Swipe-friendly navigation
-
-### 🔔 **Notifications**
-- Toast notifications for all actions
+### 🔔 **Smart Notifications**
+- Browser push notifications
+- High-priority alerts
+- Task completion notifications
+- Overdue task warnings (24h+ for maintenance, 1h+ for cooking)
 - 30-minute cooking reminders
+- Notification center with unread counter
+- Filter by read/unread
+
+### 📊 **Analytics Dashboard**
+- Task completion statistics
+- Visual charts (donut & bar charts)
+- Priority breakdown
+- Category analytics
+- Today's cooking summary
+
+### 📱 **Progressive Web App (PWA)**
+- Install on mobile & desktop
+- Works offline perfectly
+- Pull-to-refresh
+- Swipe gestures
+- Haptic feedback
+- Camera integration for photos
+- Bottom navigation on mobile
+
+### 🌐 **Cloud Sync (Optional)**
+- Sync data across all devices
+- Mobile + PC + Tablet
+- Automatic background sync
+- Works offline, syncs when online
+- Free Supabase integration
+
+### 📄 **Export & Reporting**
+- PDF fault reports with photos
+- Excel/CSV exports
+- Export individual sections or all data
+- Multi-sheet workbooks for complete exports
 - Auto-dismiss after 5 seconds
 - 4 notification types (Success, Error, Warning, Info)
 
