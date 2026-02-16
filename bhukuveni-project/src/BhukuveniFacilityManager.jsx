@@ -583,6 +583,25 @@ const BarChart = ({ data, title, color = "blue" }) => {
 // Donut Chart Component
 const DonutChart = ({ data, title }) => {
   const total = data.reduce((sum, item) => sum + item.value, 0);
+  
+  // Handle case when total is 0 to avoid NaN
+  if (total === 0) {
+    return (
+      <div className="bg-white rounded-xl shadow-xl p-4 sm:p-6">
+        <h3 className="text-lg font-bold text-gray-800 mb-4 flex items-center">
+          <PieChart className="w-5 h-5 mr-2 text-indigo-600" />
+          {title}
+        </h3>
+        <div className="flex flex-col items-center justify-center py-8">
+          <div className="text-gray-400 text-center">
+            <PieChart className="w-16 h-16 mx-auto mb-3 opacity-30" />
+            <p className="text-sm">No data available</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+  
   let currentAngle = -90;
 
   const slices = data.map((item, index) => {
@@ -928,7 +947,7 @@ const Dashboard = ({ stats, maintenanceItems, cleaningTasks, cookingSchedule, on
           <BarChart
             title="Maintenance Categories"
             data={[
-              { label: 'Facility', value: maintenanceItems.filter(i => i.category === 'Facility').length },
+              { label: 'General', value: maintenanceItems.filter(i => i.category === 'General').length },
               { label: 'Equipment', value: maintenanceItems.filter(i => i.category === 'Equipment').length },
               { label: 'Safety', value: maintenanceItems.filter(i => i.category === 'Safety').length },
               { label: 'Plumbing', value: maintenanceItems.filter(i => i.category === 'Plumbing').length },
@@ -942,8 +961,8 @@ const Dashboard = ({ stats, maintenanceItems, cleaningTasks, cookingSchedule, on
           <BarChart
             title="Cleaning by Area"
             data={[
-              { label: 'Patient Rooms', value: cleaningTasks.filter(t => t.area === 'Patient Rooms').length },
-              { label: 'Operating Rooms', value: cleaningTasks.filter(t => t.area === 'Operating Rooms').length },
+              { label: 'Bedrooms', value: cleaningTasks.filter(t => t.area === 'Bedrooms').length },
+              { label: 'Living Areas', value: cleaningTasks.filter(t => t.area === 'Living Areas').length },
               { label: 'Bathrooms', value: cleaningTasks.filter(t => t.area === 'Bathrooms').length },
               { label: 'Kitchen', value: cleaningTasks.filter(t => t.area === 'Kitchen').length },
               { label: 'Hallways', value: cleaningTasks.filter(t => t.area === 'Hallways').length }
@@ -1038,7 +1057,7 @@ const MaintenanceItem = ({ item, onToggle, onDelete, onView }) => {
 };
 
 // Maintenance Tab
-const MaintenanceTab = ({ items, staffMembers, onToggle, onDelete, onAdd, onUpdate, onView }) => {
+const MaintenanceTab = ({ items, staffMembers, houses, onToggle, onDelete, onAdd, onUpdate, onView }) => {
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
@@ -1048,13 +1067,14 @@ const MaintenanceTab = ({ items, staffMembers, onToggle, onDelete, onAdd, onUpda
   const [formData, setFormData] = useState({
     title: '',
     description: '',
-    category: 'Facility',
+    category: 'General',
     priority: 'Medium',
     frequency: 'Weekly',
-    assignedTo: ''
+    assignedTo: '',
+    house: ''
   });
 
-  const categories = ['Facility', 'Equipment', 'Safety', 'Plumbing', 'Electrical', 'HVAC', 'Exterior', 'Interior'];
+  const categories = ['General', 'Equipment', 'Safety', 'Plumbing', 'Electrical', 'HVAC', 'Exterior', 'Interior'];
   const priorities = ['Low', 'Medium', 'High', 'Critical'];
   const frequencies = ['Daily', 'Weekly', 'Monthly', 'Quarterly', 'Annually'];
 
@@ -1095,7 +1115,7 @@ const MaintenanceTab = ({ items, staffMembers, onToggle, onDelete, onAdd, onUpda
             <h2 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
               Maintenance
             </h2>
-            <p className="text-gray-600 mt-1 sm:mt-2 text-sm sm:text-base">Track and manage facility tasks</p>
+            <p className="text-gray-600 mt-1 sm:mt-2 text-sm sm:text-base">Track and manage home maintenance tasks</p>
           </div>
           <button
             onClick={() => setShowForm(!showForm)}
@@ -1239,6 +1259,17 @@ const MaintenanceTab = ({ items, staffMembers, onToggle, onDelete, onAdd, onUpda
                 >
                   <option value="">Unassigned</option>
                   {staffMembers.map(staff => <option key={staff.id} value={staff.name}>{staff.name}</option>)}
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-bold text-gray-700 mb-2">House</label>
+                <select
+                  value={formData.house}
+                  onChange={(e) => setFormData({ ...formData, house: e.target.value })}
+                  className="w-full px-3 sm:px-4 py-2 sm:py-3 border-2 border-blue-200 rounded-lg sm:rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all text-sm sm:text-base"
+                >
+                  <option value="">All Houses</option>
+                  {houses.map(h => <option key={h.id} value={h.name}>{h.name}</option>)}
                 </select>
               </div>
             </div>
@@ -1470,7 +1501,7 @@ const CleaningTask = ({ task, onToggle, onDelete }) => (
 );
 
 // Cleaning Tab
-const CleaningTab = ({ tasks, staffMembers, onToggle, onDelete, onAdd }) => {
+const CleaningTab = ({ tasks, staffMembers, houses, onToggle, onDelete, onAdd }) => {
   const [showForm, setShowForm] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterArea, setFilterArea] = useState('All');
@@ -1481,11 +1512,12 @@ const CleaningTab = ({ tasks, staffMembers, onToggle, onDelete, onAdd }) => {
     task: '',
     frequency: 'Daily',
     assignedTo: '',
-    time: ''
+    time: '',
+    house: ''
   });
 
   const frequencies = ['Daily', 'Twice Daily', 'Weekly', 'Bi-weekly', 'Monthly'];
-  const areas = ['Patient Rooms', 'Operating Rooms', 'Waiting Area', 'Bathrooms', 'Kitchen', 'Hallways', 'Offices', 'Entrance'];
+  const areas = ['Bedrooms', 'Living Areas', 'Dining Room', 'Bathrooms', 'Kitchen', 'Hallways', 'Study/Office', 'Entrance'];
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -1654,6 +1686,17 @@ const CleaningTab = ({ tasks, staffMembers, onToggle, onDelete, onAdd }) => {
                   className="w-full px-3 sm:px-4 py-2 sm:py-3 border-2 border-green-200 rounded-lg sm:rounded-xl focus:ring-2 focus:ring-green-500 text-sm sm:text-base"
                 />
               </div>
+              <div>
+                <label className="block text-sm font-bold text-gray-700 mb-2">House</label>
+                <select
+                  value={formData.house}
+                  onChange={(e) => setFormData({ ...formData, house: e.target.value })}
+                  className="w-full px-3 sm:px-4 py-2 sm:py-3 border-2 border-green-200 rounded-lg sm:rounded-xl focus:ring-2 focus:ring-green-500 text-sm sm:text-base"
+                >
+                  <option value="">All Houses</option>
+                  {houses.map(h => <option key={h.id} value={h.name}>{h.name}</option>)}
+                </select>
+              </div>
             </div>
             <div className="flex flex-col sm:flex-row justify-end space-y-2 sm:space-y-0 sm:space-x-4 mt-4 sm:mt-6">
               <button
@@ -1785,7 +1828,7 @@ const CookingSlot = ({ slot, onToggle, onDelete }) => {
 };
 
 // Cooking Tab
-const CookingTab = ({ schedule, staffMembers, onToggle, onDelete, onAdd }) => {
+const CookingTab = ({ schedule, staffMembers, houses, onToggle, onDelete, onAdd }) => {
   const [showForm, setShowForm] = useState(false);
   const [formData, setFormData] = useState({
     mealType: 'Breakfast',
@@ -1793,7 +1836,8 @@ const CookingTab = ({ schedule, staffMembers, onToggle, onDelete, onAdd }) => {
     time: '',
     dish: '',
     chef: '',
-    servings: ''
+    servings: '',
+    house: ''
   });
 
   const mealTypes = ['Breakfast', 'Lunch', 'Dinner', 'Snack'];
@@ -1903,6 +1947,17 @@ const CookingTab = ({ schedule, staffMembers, onToggle, onDelete, onAdd }) => {
                 >
                   <option value="">Unassigned</option>
                   {staffMembers.map(staff => <option key={staff.id} value={staff.name}>{staff.name}</option>)}
+                </select>
+              </div>
+              <div className="sm:col-span-2">
+                <label className="block text-sm font-bold text-gray-700 mb-2">House</label>
+                <select
+                  value={formData.house}
+                  onChange={(e) => setFormData({ ...formData, house: e.target.value })}
+                  className="w-full px-3 sm:px-4 py-2 sm:py-3 border-2 border-orange-200 rounded-lg sm:rounded-xl focus:ring-2 focus:ring-orange-500 text-sm sm:text-base"
+                >
+                  <option value="">All Houses</option>
+                  {houses.map(h => <option key={h.id} value={h.name}>{h.name}</option>)}
                 </select>
               </div>
             </div>
@@ -2187,6 +2242,7 @@ const BhukuveniFacilityManager = () => {
   const [menuItems, setMenuItems] = useState([]);
   const [notifications, setNotifications] = useState([]);
   const [staffMembers, setStaffMembers] = useState([]);
+  const [houses, setHouses] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [viewingItem, setViewingItem] = useState(null);
@@ -2243,18 +2299,24 @@ const BhukuveniFacilityManager = () => {
 
   const loadData = async () => {
     try {
-      const [maintenance, cleaning, cooking, menu, notifs, staff, prefs] = await Promise.all([
+      const [maintenance, cleaning, cooking, menu, notifs, staff, prefs, housesData] = await Promise.all([
         window.storage.get('bhukuveni-maintenance', false).catch(() => null),
         window.storage.get('bhukuveni-cleaning', false).catch(() => null),
         window.storage.get('bhukuveni-cooking', false).catch(() => null),
         window.storage.get('bhukuveni-menu', false).catch(() => null),
         window.storage.get('bhukuveni-notifications', false).catch(() => null),
         window.storage.get('bhukuveni-staff', false).catch(() => null),
-        window.storage.get('bhukuveni-notification-prefs', false).catch(() => null)
+        window.storage.get('bhukuveni-notification-prefs', false).catch(() => null),
+        window.storage.get('bhukuveni-houses', false).catch(() => null)
       ]);
 
       if (maintenance?.value) setMaintenanceItems(JSON.parse(maintenance.value));
       if (cleaning?.value) setCleaningTasks(JSON.parse(cleaning.value));
+      if (cooking?.value) setCookingSchedule(JSON.parse(cooking.value));
+      if (menu?.value) setMenuItems(JSON.parse(menu.value));
+      if (notifs?.value) setNotifications(JSON.parse(notifs.value));
+      if (staff?.value) setStaffMembers(JSON.parse(staff.value));
+      if (housesData?.value) setHouses(JSON.parse(housesData.value));
       if (cooking?.value) setCookingSchedule(JSON.parse(cooking.value));
       if (menu?.value) setMenuItems(JSON.parse(menu.value));
       if (notifs?.value) setNotifications(JSON.parse(notifs.value));
@@ -2289,7 +2351,7 @@ const BhukuveniFacilityManager = () => {
     
     // Send browser notification if enabled and permitted
     if (notificationPreferences.browserNotifications && notificationPermission === 'granted' && !options.skipBrowser) {
-      const title = options.title || 'Bhukuveni Facility Manager';
+      const title = options.title || 'Bhukuveni Home Manager';
       const icon = '/icon-192x192.png';
       const body = message;
       
@@ -2346,8 +2408,9 @@ const BhukuveniFacilityManager = () => {
   const checkForReminders = () => {
     const now = new Date();
     cookingSchedule.forEach(slot => {
-      if (!slot.completed) {
+      if (!slot.completed && slot.date && slot.time) {
         const slotTime = new Date(`${slot.date}T${slot.time}`);
+        if (isNaN(slotTime.getTime())) return; // Skip invalid dates
         const diff = slotTime - now;
         if (diff > 0 && diff < 1800000 && !slot.reminded) {
           addNotification(`Upcoming: ${slot.mealType} - ${slot.dish} in 30 minutes`, 'warning');
@@ -2366,8 +2429,9 @@ const BhukuveniFacilityManager = () => {
     
     // Check for overdue high-priority maintenance items
     maintenanceItems.forEach(item => {
-      if (!item.completed && item.priority === 'High' && !item.overdueNotified) {
+      if (!item.completed && item.priority === 'High' && !item.overdueNotified && item.createdAt) {
         const createdDate = new Date(item.createdAt);
+        if (isNaN(createdDate.getTime())) return; // Skip invalid dates
         const hoursSinceCreated = (now - createdDate) / (1000 * 60 * 60);
         
         // Notify if high priority item is pending for more than 24 hours
@@ -2384,8 +2448,9 @@ const BhukuveniFacilityManager = () => {
     
     // Check for overdue cooking tasks
     cookingSchedule.forEach(slot => {
-      if (!slot.completed && !slot.overdueNotified) {
+      if (!slot.completed && !slot.overdueNotified && slot.date && slot.time) {
         const slotDateTime = new Date(`${slot.date}T${slot.time}`);
+        if (isNaN(slotDateTime.getTime())) return; // Skip invalid dates
         if (now > slotDateTime) {
           const hoursOverdue = (now - slotDateTime) / (1000 * 60 * 60);
           if (hoursOverdue > 1) { // Notify if more than 1 hour overdue
@@ -2465,12 +2530,28 @@ const BhukuveniFacilityManager = () => {
     await saveData('bhukuveni-staff', updated);
   };
 
+  // House management functions
+  const addHouse = async (name) => {
+    const newHouse = { id: Date.now(), name };
+    const updated = [...houses, newHouse];
+    setHouses(updated);
+    await saveData('bhukuveni-houses', updated);
+    addNotification(`Added house: ${name}`, 'success');
+  };
+
+  const deleteHouse = async (id) => {
+    const updated = houses.filter(h => h.id !== id);
+    setHouses(updated);
+    await saveData('bhukuveni-houses', updated);
+  };
+
   // Maintenance functions
   const addMaintenanceItem = async (item) => {
     const newItem = {
       id: Date.now(),
       ...item,
       completed: false,
+      createdAt: new Date().toISOString(),
       lastChecked: null,
       notes: [],
       photos: []
@@ -2499,6 +2580,8 @@ const BhukuveniFacilityManager = () => {
     await saveData('bhukuveni-maintenance', updated);
     const item = updated.find(i => i.id === id);
     
+    if (!item) return; // Safety check
+    
     if (item.completed && notificationPreferences.taskCompletions) {
       addNotification(
         `✓ Completed: ${item.title}`,
@@ -2516,6 +2599,7 @@ const BhukuveniFacilityManager = () => {
 
   const deleteMaintenanceItem = async (id) => {
     const item = maintenanceItems.find(i => i.id === id);
+    if (!item) return; // Safety check
     const updated = maintenanceItems.filter(item => item.id !== id);
     setMaintenanceItems(updated);
     await saveData('bhukuveni-maintenance', updated);
@@ -2572,6 +2656,7 @@ const BhukuveniFacilityManager = () => {
       id: Date.now(),
       ...task,
       completed: false,
+      createdAt: new Date().toISOString(),
       lastCompleted: null,
       notes: [],
       photos: []
@@ -2589,6 +2674,7 @@ const BhukuveniFacilityManager = () => {
     setCleaningTasks(updated);
     await saveData('bhukuveni-cleaning', updated);
     const task = updated.find(t => t.id === id);
+    if (!task) return; // Safety check
     addNotification(
       task.completed ? `Completed: ${task.task}` : `Unchecked: ${task.task}`,
       task.completed ? 'success' : 'info'
@@ -2597,6 +2683,7 @@ const BhukuveniFacilityManager = () => {
 
   const deleteCleaningTask = async (id) => {
     const task = cleaningTasks.find(t => t.id === id);
+    if (!task) return; // Safety check
     const updated = cleaningTasks.filter(task => task.id !== id);
     setCleaningTasks(updated);
     await saveData('bhukuveni-cleaning', updated);
@@ -2609,6 +2696,7 @@ const BhukuveniFacilityManager = () => {
       id: Date.now(),
       ...slot,
       completed: false,
+      createdAt: new Date().toISOString(),
       notes: [],
       photos: []
     };
@@ -2625,6 +2713,7 @@ const BhukuveniFacilityManager = () => {
     setCookingSchedule(updated);
     await saveData('bhukuveni-cooking', updated);
     const slot = updated.find(s => s.id === id);
+    if (!slot) return; // Safety check
     addNotification(
       slot.completed ? `Completed: ${slot.dish}` : `Unchecked: ${slot.dish}`,
       slot.completed ? 'success' : 'info'
@@ -2633,6 +2722,7 @@ const BhukuveniFacilityManager = () => {
 
   const deleteCookingSlot = async (id) => {
     const slot = cookingSchedule.find(s => s.id === id);
+    if (!slot) return; // Safety check
     const updated = cookingSchedule.filter(slot => slot.id !== id);
     setCookingSchedule(updated);
     await saveData('bhukuveni-cooking', updated);
@@ -2650,6 +2740,7 @@ const BhukuveniFacilityManager = () => {
 
   const deleteMenuItem = async (id) => {
     const item = menuItems.find(i => i.id === id);
+    if (!item) return; // Safety check
     const updated = menuItems.filter(item => item.id !== id);
     setMenuItems(updated);
     await saveData('bhukuveni-menu', updated);
@@ -2668,7 +2759,7 @@ const BhukuveniFacilityManager = () => {
     pdf.setTextColor(255, 255, 255);
     pdf.setFontSize(24);
     pdf.setFont('helvetica', 'bold');
-    pdf.text('Bhukuveni Facility Manager', pageWidth / 2, 20, { align: 'center' });
+    pdf.text('Bhukuveni Home Manager', pageWidth / 2, 20, { align: 'center' });
     pdf.setFontSize(14);
     pdf.text('Maintenance Fault Report', pageWidth / 2, 32, { align: 'center' });
 
@@ -2992,7 +3083,7 @@ const BhukuveniFacilityManager = () => {
               </div>
               <div>
                 <h1 className="text-xl sm:text-4xl font-bold text-white drop-shadow-lg">Bhukuveni</h1>
-                <p className="text-indigo-100 mt-1 text-xs sm:text-lg hidden sm:block">Healthcare Facility Management</p>
+                <p className="text-indigo-100 mt-1 text-xs sm:text-lg hidden sm:block">Home Management</p>
               </div>
             </div>
             <div className="flex items-center space-x-2 sm:space-x-4">
@@ -3126,6 +3217,7 @@ const BhukuveniFacilityManager = () => {
             <MaintenanceTab
               items={maintenanceItems}
               staffMembers={staffMembers}
+              houses={houses}
               onToggle={toggleMaintenanceItem}
               onDelete={deleteMaintenanceItem}
               onAdd={addMaintenanceItem}
@@ -3137,6 +3229,7 @@ const BhukuveniFacilityManager = () => {
             <CleaningTab
               tasks={cleaningTasks}
               staffMembers={staffMembers}
+              houses={houses}
               onToggle={toggleCleaningTask}
               onDelete={deleteCleaningTask}
               onAdd={addCleaningTask}
@@ -3146,6 +3239,7 @@ const BhukuveniFacilityManager = () => {
             <CookingTab
               schedule={cookingSchedule}
               staffMembers={staffMembers}
+              houses={houses}
               onToggle={toggleCookingSlot}
               onDelete={deleteCookingSlot}
               onAdd={addCookingSlot}
