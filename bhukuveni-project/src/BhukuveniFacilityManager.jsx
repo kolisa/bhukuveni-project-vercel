@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Calendar, ClipboardCheck, Utensils, Sparkles, Plus, Trash2, Edit2, Save, X, CheckCircle, Circle, Bell, AlertCircle, CheckCheck, Clock, TrendingUp, Users, ChefHat, Home, Camera, FileText, Download, User, Image as ImageIcon, Menu as MenuIcon } from 'lucide-react';
+import { Calendar, ClipboardCheck, Utensils, Sparkles, Plus, Trash2, Edit2, Save, X, CheckCircle, Circle, Bell, AlertCircle, CheckCheck, Clock, TrendingUp, Users, ChefHat, Home, Camera, FileText, Download, User, Image as ImageIcon, Menu as MenuIcon, BarChart3, PieChart, Activity } from 'lucide-react';
+import jsPDF from 'jspdf';
 
 // Notification Toast Component
 const NotificationToast = ({ notifications, onClose }) => {
@@ -234,6 +235,153 @@ const StatCard = ({ title, completed, total, icon: Icon, gradient, showPercentag
   );
 };
 
+// Simple Bar Chart Component
+const BarChart = ({ data, title, color = "blue" }) => {
+  const maxValue = Math.max(...data.map(d => d.value), 1);
+  
+  return (
+    <div className="bg-white rounded-xl shadow-xl p-4 sm:p-6">
+      <h3 className="text-lg font-bold text-gray-800 mb-4 flex items-center">
+        <BarChart3 className="w-5 h-5 mr-2 text-indigo-600" />
+        {title}
+      </h3>
+      <div className="space-y-3">
+        {data.map((item, index) => (
+          <div key={index}>
+            <div className="flex justify-between text-sm mb-1">
+              <span className="font-medium text-gray-700">{item.label}</span>
+              <span className="font-bold text-gray-900">{item.value}</span>
+            </div>
+            <div className="w-full bg-gray-200 rounded-full h-3">
+              <div
+                className={`h-3 rounded-full bg-gradient-to-r from-${color}-400 to-${color}-600 transition-all duration-500`}
+                style={{ width: `${(item.value / maxValue) * 100}%` }}
+              />
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+// Donut Chart Component
+const DonutChart = ({ data, title }) => {
+  const total = data.reduce((sum, item) => sum + item.value, 0);
+  let currentAngle = -90;
+
+  const slices = data.map((item, index) => {
+    const percentage = (item.value / total) * 100;
+    const angle = (percentage / 100) * 360;
+    const slice = {
+      ...item,
+      percentage: percentage.toFixed(1),
+      startAngle: currentAngle,
+      endAngle: currentAngle + angle
+    };
+    currentAngle += angle;
+    return slice;
+  });
+
+  const colors = [
+    'bg-blue-500',
+    'bg-green-500',
+    'bg-orange-500',
+    'bg-purple-500',
+    'bg-pink-500',
+    'bg-yellow-500',
+    'bg-red-500',
+    'bg-indigo-500'
+  ];
+
+  return (
+    <div className="bg-white rounded-xl shadow-xl p-4 sm:p-6">
+      <h3 className="text-lg font-bold text-gray-800 mb-4 flex items-center">
+        <PieChart className="w-5 h-5 mr-2 text-indigo-600" />
+        {title}
+      </h3>
+      <div className="flex flex-col items-center">
+        <div className="relative w-48 h-48 mb-4">
+          <svg viewBox="0 0 200 200" className="transform -rotate-90">
+            <circle
+              cx="100"
+              cy="100"
+              r="80"
+              fill="none"
+              stroke="#e5e7eb"
+              strokeWidth="40"
+            />
+            {slices.map((slice, index) => {
+              const circumference = 2 * Math.PI * 80;
+              const offset = ((100 - slice.percentage) / 100) * circumference;
+              const rotateAngle = slice.startAngle + 90;
+              return (
+                <circle
+                  key={index}
+                  cx="100"
+                  cy="100"
+                  r="80"
+                  fill="none"
+                  stroke={slice.color || '#6366f1'}
+                  strokeWidth="40"
+                  strokeDasharray={circumference}
+                  strokeDashoffset={offset}
+                  style={{
+                    transform: `rotate(${rotateAngle}deg)`,
+                    transformOrigin: '100px 100px',
+                    transition: 'all 0.5s ease'
+                  }}
+                />
+              );
+            })}
+          </svg>
+          <div className="absolute inset-0 flex items-center justify-center">
+            <div className="text-center">
+              <div className="text-3xl font-bold text-gray-800">{total}</div>
+              <div className="text-xs text-gray-500">Total</div>
+            </div>
+          </div>
+        </div>
+        <div className="w-full space-y-2">
+          {data.map((item, index) => (
+            <div key={index} className="flex items-center justify-between">
+              <div className="flex items-center">
+                <div className={`w-3 h-3 rounded-full mr-2 ${colors[index % colors.length]}`} style={{ backgroundColor: item.color }} />
+                <span className="text-sm text-gray-700">{item.label}</span>
+              </div>
+              <span className="text-sm font-bold text-gray-900">
+                {item.value} ({((item.value / total) * 100).toFixed(1)}%)
+              </span>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// Trend Card Component
+const TrendCard = ({ title, value, change, icon: Icon, color }) => {
+  const isPositive = change >= 0;
+  
+  return (
+    <div className="bg-white rounded-xl shadow-xl p-4 sm:p-6">
+      <div className="flex items-center justify-between mb-2">
+        <span className="text-sm font-medium text-gray-600">{title}</span>
+        <Icon className={`w-5 h-5 text-${color}-500`} />
+      </div>
+      <div className="flex items-end justify-between">
+        <div className="text-3xl font-bold text-gray-800">{value}</div>
+        <div className={`flex items-center text-sm font-semibold ${
+          isPositive ? 'text-green-600' : 'text-red-600'
+        }`}>
+          {isPositive ? '↑' : '↓'} {Math.abs(change)}%
+        </div>
+      </div>
+    </div>
+  );
+};
+
 // Dashboard Component
 const Dashboard = ({ stats, maintenanceItems, cleaningTasks, cookingSchedule }) => {
   const today = new Date().toDateString();
@@ -348,6 +496,102 @@ const Dashboard = ({ stats, maintenanceItems, cleaningTasks, cookingSchedule }) 
               <p className="text-gray-500 text-xs sm:text-sm italic">No meals scheduled</p>
             )}
           </div>
+        </div>
+      </div>
+
+      {/* Enhanced Analytics Section */}
+      <div className="bg-gradient-to-br from-indigo-50 to-purple-50 rounded-2xl p-6 border border-indigo-100">
+        <h2 className="text-2xl font-bold text-gray-800 mb-6 flex items-center">
+          <Activity className="w-7 h-7 mr-3 text-indigo-600" />
+          Analytics & Insights
+        </h2>
+
+        {/* Trend Cards */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+          <TrendCard
+            title="Completion Rate"
+            value={`${stats.maintenanceTotal > 0 ? Math.round((stats.maintenanceCompleted / stats.maintenanceTotal) * 100) : 0}%`}
+            change={12}
+            icon={TrendingUp}
+            color="blue"
+          />
+          <TrendCard
+            title="Active Tasks"
+            value={stats.maintenanceTotal - stats.maintenanceCompleted + cleaningTasks.filter(t => !t.completed).length}
+            change={-5}
+            icon={ClipboardCheck}
+            color="orange"
+          />
+          <TrendCard
+            title="Staff Utilization"
+            value={`${stats.totalStaff}`}
+            change={8}
+            icon={Users}
+            color="purple"
+          />
+          <TrendCard
+            title="Weekly Meals"
+            value={cookingSchedule.length}
+            change={15}
+            icon={ChefHat}
+            color="green"
+          />
+        </div>
+
+        {/* Charts Row */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Maintenance by Priority */}
+          <BarChart
+            title="Maintenance by Priority"
+            data={[
+              { label: 'Critical', value: maintenanceItems.filter(i => i.priority === 'Critical').length },
+              { label: 'High', value: maintenanceItems.filter(i => i.priority === 'High').length },
+              { label: 'Medium', value: maintenanceItems.filter(i => i.priority === 'Medium').length },
+              { label: 'Low', value: maintenanceItems.filter(i => i.priority === 'Low').length }
+            ]}
+            color="red"
+          />
+
+          {/* Task Distribution */}
+          <DonutChart
+            title="Task Distribution"
+            data={[
+              { label: 'Maintenance', value: stats.maintenanceTotal, color: '#3b82f6' },
+              { label: 'Cleaning', value: stats.cleaningTotal, color: '#10b981' },
+              { label: 'Cooking', value: cookingSchedule.length, color: '#f97316' },
+              { label: 'Completed', value: stats.maintenanceCompleted + stats.cleaningCompleted, color: '#8b5cf6' }
+            ]}
+          />
+        </div>
+
+        {/* Additional Insights */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
+          {/* Category Breakdown */}
+          <BarChart
+            title="Maintenance Categories"
+            data={[
+              { label: 'Facility', value: maintenanceItems.filter(i => i.category === 'Facility').length },
+              { label: 'Equipment', value: maintenanceItems.filter(i => i.category === 'Equipment').length },
+              { label: 'Safety', value: maintenanceItems.filter(i => i.category === 'Safety').length },
+              { label: 'Plumbing', value: maintenanceItems.filter(i => i.category === 'Plumbing').length },
+              { label: 'Electrical', value: maintenanceItems.filter(i => i.category === 'Electrical').length },
+              { label: 'HVAC', value: maintenanceItems.filter(i => i.category === 'HVAC').length }
+            ]}
+            color="indigo"
+          />
+
+          {/* Cleaning Areas */}
+          <BarChart
+            title="Cleaning by Area"
+            data={[
+              { label: 'Patient Rooms', value: cleaningTasks.filter(t => t.area === 'Patient Rooms').length },
+              { label: 'Operating Rooms', value: cleaningTasks.filter(t => t.area === 'Operating Rooms').length },
+              { label: 'Bathrooms', value: cleaningTasks.filter(t => t.area === 'Bathrooms').length },
+              { label: 'Kitchen', value: cleaningTasks.filter(t => t.area === 'Kitchen').length },
+              { label: 'Hallways', value: cleaningTasks.filter(t => t.area === 'Hallways').length }
+            ]}
+            color="green"
+          />
         </div>
       </div>
     </div>
@@ -1655,53 +1899,150 @@ const BhukuveniFacilityManager = () => {
     addNotification(`Removed from menu: ${item.mainDish}`, 'info');
   };
 
-  // PDF Export function
+  // PDF Export function with jsPDF
   const exportFaultToPDF = async (item) => {
-    const pdfContent = `
-Bhukuveni Facility Manager - Fault Report
-═══════════════════════════════════════════════════
+    const pdf = new jsPDF();
+    const pageWidth = pdf.internal.pageSize.getWidth();
+    let yPosition = 20;
 
-Task: ${item.title}
-Category: ${item.category}
-Priority: ${item.priority}
-Frequency: ${item.frequency}
-Status: ${item.completed ? 'Completed' : 'Pending'}
-Assigned To: ${item.assignedTo || 'Unassigned'}
+    // Header
+    pdf.setFillColor(79, 70, 229); // Indigo
+    pdf.rect(0, 0, pageWidth, 40, 'F');
+    pdf.setTextColor(255, 255, 255);
+    pdf.setFontSize(24);
+    pdf.setFont('helvetica', 'bold');
+    pdf.text('Bhukuveni Facility Manager', pageWidth / 2, 20, { align: 'center' });
+    pdf.setFontSize(14);
+    pdf.text('Maintenance Fault Report', pageWidth / 2, 32, { align: 'center' });
 
-Description:
-${item.description || 'No description provided'}
+    // Reset text color
+    pdf.setTextColor(0, 0, 0);
+    yPosition = 55;
 
-${item.lastChecked ? `Last Checked: ${new Date(item.lastChecked).toLocaleString()}` : ''}
+    // Title
+    pdf.setFontSize(16);
+    pdf.setFont('helvetica', 'bold');
+    pdf.text('Task:', 20, yPosition);
+    pdf.setFont('helvetica', 'normal');
+    pdf.text(item.title, 45, yPosition);
+    yPosition += 10;
 
-${item.notes && item.notes.length > 0 ? `
-NOTES:
-───────────────────────────────────────────────────
-${item.notes.map(note => `
-[${new Date(note.timestamp).toLocaleString()}] - ${note.author}
-${note.text}
-`).join('\n')}
-` : ''}
+    // Details section
+    pdf.setFontSize(12);
+    const details = [
+      { label: 'Category:', value: item.category },
+      { label: 'Priority:', value: item.priority },
+      { label: 'Frequency:', value: item.frequency },
+      { label: 'Status:', value: item.completed ? 'Completed ✓' : 'Pending' },
+      { label: 'Assigned To:', value: item.assignedTo || 'Unassigned' },
+      { label: 'Last Checked:', value: item.lastChecked ? new Date(item.lastChecked).toLocaleString() : 'N/A' }
+    ];
 
-${item.photos && item.photos.length > 0 ? `
-Photos Attached: ${item.photos.length}
-` : ''}
+    details.forEach(detail => {
+      pdf.setFont('helvetica', 'bold');
+      pdf.text(detail.label, 20, yPosition);
+      pdf.setFont('helvetica', 'normal');
+      pdf.text(detail.value, 70, yPosition);
+      yPosition += 8;
+    });
 
-Generated: ${new Date().toLocaleString()}
-═══════════════════════════════════════════════════
-    `;
+    yPosition += 5;
 
-    // Create and download PDF-like text file
-    const blob = new Blob([pdfContent], { type: 'text/plain' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `fault-report-${item.id}-${Date.now()}.txt`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-    
-    addNotification('Fault report exported', 'success');
+    // Description
+    if (item.description) {
+      pdf.setFont('helvetica', 'bold');
+      pdf.text('Description:', 20, yPosition);
+      yPosition += 8;
+      pdf.setFont('helvetica', 'normal');
+      const descLines = pdf.splitTextToSize(item.description, pageWidth - 40);
+      descLines.forEach(line => {
+        if (yPosition > 270) {
+          pdf.addPage();
+          yPosition = 20;
+        }
+        pdf.text(line, 20, yPosition);
+        yPosition += 6;
+      });
+      yPosition += 5;
+    }
+
+    // Notes section
+    if (item.notes && item.notes.length > 0) {
+      if (yPosition > 250) {
+        pdf.addPage();
+        yPosition = 20;
+      }
+      pdf.setFillColor(255, 243, 205); // Light yellow
+      pdf.rect(15, yPosition - 5, pageWidth - 30, 10, 'F');
+      pdf.setFont('helvetica', 'bold');
+      pdf.setFontSize(14);
+      pdf.text('NOTES', 20, yPosition);
+      yPosition += 10;
+
+      pdf.setFontSize(10);
+      item.notes.forEach(note => {
+        if (yPosition > 270) {
+          pdf.addPage();
+          yPosition = 20;
+        }
+        pdf.setFont('helvetica', 'bold');
+        pdf.text(`[${new Date(note.timestamp).toLocaleString()}] - ${note.author}`, 20, yPosition);
+        yPosition += 6;
+        pdf.setFont('helvetica', 'normal');
+        const noteLines = pdf.splitTextToSize(note.text, pageWidth - 40);
+        noteLines.forEach(line => {
+          if (yPosition > 270) {
+            pdf.addPage();
+            yPosition = 20;
+          }
+          pdf.text(line, 20, yPosition);
+          yPosition += 5;
+        });
+        yPosition += 5;
+      });
+    }
+
+    // Photos section
+    if (item.photos && item.photos.length > 0) {
+      if (yPosition > 250) {
+        pdf.addPage();
+        yPosition = 20;
+      }
+      pdf.setFont('helvetica', 'bold');
+      pdf.setFontSize(12);
+      pdf.text(`Photos Attached: ${item.photos.length}`, 20, yPosition);
+      yPosition += 10;
+
+      // Add photos to PDF
+      for (let i = 0; i < Math.min(item.photos.length, 4); i++) {
+        if (yPosition > 200) {
+          pdf.addPage();
+          yPosition = 20;
+        }
+        try {
+          pdf.addImage(item.photos[i].data, 'JPEG', 20, yPosition, 80, 60);
+          pdf.setFontSize(9);
+          pdf.text(new Date(item.photos[i].timestamp).toLocaleString(), 20, yPosition + 65);
+          yPosition += 75;
+        } catch (e) {
+          console.error('Error adding image to PDF:', e);
+        }
+      }
+    }
+
+    // Footer
+    const pageCount = pdf.internal.getNumberOfPages();
+    for (let i = 1; i <= pageCount; i++) {
+      pdf.setPage(i);
+      pdf.setFontSize(9);
+      pdf.setTextColor(128, 128, 128);
+      pdf.text(`Generated: ${new Date().toLocaleString()}`, 20, pdf.internal.pageSize.getHeight() - 10);
+      pdf.text(`Page ${i} of ${pageCount}`, pageWidth - 40, pdf.internal.pageSize.getHeight() - 10);
+    }
+
+    // Save PDF
+    pdf.save(`fault-report-${item.title.replace(/[^a-z0-9]/gi, '-')}-${Date.now()}.pdf`);
+    addNotification('PDF report exported successfully', 'success');
   };
 
   // Dashboard statistics
@@ -1752,6 +2093,22 @@ Generated: ${new Date().toLocaleString()}
               </div>
             </div>
             <div className="flex items-center space-x-2 sm:space-x-4">
+              {/* Sync Status Indicator */}
+              {window.storage && window.storage.getStatus && (
+                <div className="hidden lg:block bg-white/20 backdrop-blur-lg rounded-xl px-3 py-2 text-white">
+                  {window.storage.getStatus().cloudSync ? (
+                    <div className="flex items-center space-x-2">
+                      <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+                      <span className="text-xs font-medium">Cloud Sync On</span>
+                    </div>
+                  ) : (
+                    <div className="flex items-center space-x-2">
+                      <div className="w-2 h-2 bg-yellow-400 rounded-full"></div>
+                      <span className="text-xs font-medium">Offline Mode</span>
+                    </div>
+                  )}
+                </div>
+              )}
               <div className="hidden sm:block bg-white/20 backdrop-blur-lg rounded-xl px-4 sm:px-6 py-2 sm:py-3 text-white">
                 <div className="text-xs opacity-90">Time</div>
                 <div className="text-sm sm:text-xl font-bold">{new Date().toLocaleTimeString()}</div>

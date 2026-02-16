@@ -1,7 +1,7 @@
 {
   "name": "Bhukuveni Facility Manager",
   "short_name": "Bhukuveni",
-  "description": "Healthcare facility management system for maintenance, cleaning, and meal planning",
+  "description": "Healthcare facility management system for maintenance, cleaning, and meal planning with offline support",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#4F46E5",
@@ -18,7 +18,35 @@
   "categories": [
     "productivity",
     "business",
-    "medical"
+    "medical",
+    "healthcare"
   ],
-  "screenshots": []
+  "screenshots": [],
+  "shortcuts": [
+    {
+      "name": "Dashboard",
+      "short_name": "Dashboard",
+      "description": "View facility dashboard",
+      "url": "/?tab=dashboard"
+    },
+    {
+      "name": "Maintenance",
+      "short_name": "Maintenance",
+      "description": "Manage maintenance tasks",
+      "url": "/?tab=maintenance"
+    },
+    {
+      "name": "Cleaning",
+      "short_name": "Cleaning",
+      "description": "Manage cleaning schedule",
+      "url": "/?tab=cleaning"
+    },
+    {
+      "name": "Cooking",
+      "short_name": "Cooking",
+      "description": "Manage cooking schedule",
+      "url": "/?tab=cooking"
+    }
+  ]
 }
+
